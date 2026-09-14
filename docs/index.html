@@ -107,6 +107,33 @@
     <figcaption>The GAS Debugger, mid-game. Health is 80/100 because an ability just took 20 off it — the value on screen is live, not a default.</figcaption>
   </figure>
 
+  <h2 id="requirements">Requirements</h2>
+
+  <div class="callout">
+    <p><strong>Nothing to install or enable by hand.</strong> The two plugins below are declared as
+    dependencies, so switching on HitzGAS Toolkit switches them on too.</p>
+  </div>
+
+  <table>
+    <tr><th>Requires</th><th>Type</th><th>You do</th></tr>
+    <tr><td><code>GameplayAbilities</code></td><td>Engine plugin</td><td>Nothing — enabled automatically</td></tr>
+    <tr><td><code>EnhancedInput</code></td><td>Engine plugin</td><td>Nothing — enabled automatically</td></tr>
+    <tr><td><code>GameplayTags</code></td><td>Engine module</td><td>Nothing — built into the engine</td></tr>
+    <tr><td><code>GameplayTasks</code></td><td>Engine module</td><td>Nothing — built into the engine</td></tr>
+    <tr><td><code>PhysicsCore</code></td><td>Engine module</td><td>Nothing — built into the engine</td></tr>
+  </table>
+
+  <h3>Enhanced Input is required for ability input</h3>
+  <p>The <code>HitzAbilityInput</code> component binds InputActions through an Enhanced Input mapping
+  context. If your project still uses the <strong>legacy input system</strong>, that one component
+  will not work. Everything else — attributes, abilities, effects, the listener and the debugger —
+  is input-agnostic and works either way; you would just activate abilities through your own input
+  path instead.</p>
+
+  <h3>Blueprint-only projects are fine</h3>
+  <p>This is a code plugin, so it installs to the engine pre-compiled. You do not need a C++ project,
+  a compiler, or Visual Studio to use it.</p>
+
   <h2 id="quick-start">Quick start</h2>
 
   <p>Three components on any Blueprint actor. That is the whole setup.</p>
