@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HitzGAS Toolkit — Gameplay Ability System without the boilerplate</title>
+<meta name="description" content="Unreal Engine 5 plugin: a live GAS debugger, an AttributeSet generator, and working ability samples. Add three components, press Play.">
+<style>
+  :root {
+    --ground: #120d24;
+    --surface: #1b1436;
+    --hair: #302650;
+    --accent: #2b9df5;
+    --ember: #f5e050;
+    --text: #f3effa;
+    --muted: #b0a6c8;
+    --dim: #8a7fa8;
+    --mono: Consolas, 'Cascadia Mono', ui-monospace, monospace;
+    --display: Bahnschrift, 'Segoe UI Semibold', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 17px; line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+  a { color: var(--ember); }
+  a:hover { color: var(--accent); }
+  code, kbd { font-family: var(--mono); font-size: 0.92em; }
+  code { background: var(--surface); border: 1px solid var(--hair); border-radius: 3px; padding: 1px 6px; color: #cfe6ff; }
+  pre { background: var(--surface); border: 1px solid var(--hair); border-left: 3px solid var(--accent);
+        border-radius: 4px; padding: 18px 20px; overflow-x: auto; font-family: var(--mono); font-size: 14.5px; line-height: 1.6; }
+  pre code { background: none; border: none; padding: 0; color: #ded6f0; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; }
+  h2 { font-size: 34px; margin: 64px 0 18px; padding-top: 20px; border-top: 1px solid var(--hair); }
+  h3 { font-size: 22px; margin: 34px 0 10px; }
+  p { text-wrap: pretty; }
+
+  header { border-bottom: 1px solid var(--hair);
+    background: radial-gradient(900px 420px at 12% -10%, rgba(43,157,245,0.18), transparent 65%); }
+  .hero { padding: 84px 0 68px; }
+  .eyebrow { font-family: var(--mono); font-size: 13.5px; letter-spacing: 0.16em; color: var(--ember); margin-bottom: 20px; }
+  .hero h1 { font-size: 60px; margin: 0 0 20px; }
+  .lede { font-size: 21px; color: var(--muted); max-width: 700px; margin: 0 0 32px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-block; padding: 13px 26px; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 16px; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #1d84d8; color: #fff; }
+  .btn-ghost { border: 1px solid var(--hair); color: var(--text); background: var(--surface); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+
+  .shot { margin: 34px 0; border: 1px solid var(--hair); border-radius: 5px; overflow: hidden; background: var(--surface); }
+  .shot img { width: 100%; display: block; }
+  .shot figcaption { padding: 12px 16px; font-size: 14.5px; color: var(--dim); border-top: 1px solid var(--hair); }
+
+  table { width: 100%; border-collapse: collapse; margin: 22px 0; font-size: 15.5px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); font-weight: 500; }
+  td:first-child { white-space: nowrap; }
+
+  .callout { background: var(--surface); border: 1px solid var(--hair); border-left: 3px solid var(--accent);
+             border-radius: 4px; padding: 18px 22px; margin: 26px 0; }
+  .callout strong { color: var(--text); }
+  .callout p { margin: 0; color: var(--muted); }
+
+  .tshoot { border: 1px solid var(--hair); border-radius: 5px; margin: 16px 0; background: var(--surface); }
+  .tshoot > summary { cursor: pointer; padding: 15px 20px; font-weight: 600; list-style: none; color: var(--text); }
+  .tshoot > summary::-webkit-details-marker { display: none; }
+  .tshoot > summary::before { content: "▸ "; color: var(--accent); font-weight: 700; }
+  .tshoot[open] > summary::before { content: "▾ "; }
+  .tshoot > div { padding: 0 20px 18px; color: var(--muted); border-top: 1px solid var(--hair); padding-top: 16px; }
+  .tshoot p { margin: 0 0 12px; }
+
+  footer { border-top: 1px solid var(--hair); margin-top: 80px; padding: 40px 0 64px; color: var(--dim); font-size: 15px; }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; }
+    .hero { padding: 56px 0 44px; }
+    .hero h1 { font-size: 38px; }
+    .lede { font-size: 18px; }
+    h2 { font-size: 27px; }
+    td:first-child { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hero">
+    <div class="eyebrow">UNREAL ENGINE 5 &nbsp;·&nbsp; GAMEPLAY ABILITY SYSTEM</div>
+    <h1>GAS, running in an afternoon.</h1>
+    <p class="lede">Add three components to a Blueprint actor, press Play, and watch real attributes
+    change. No C++ subclass, no ability-system boilerplate, no week spent learning a framework
+    before you write your first ability.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#">Get it on Fab</a>
+      <a class="btn btn-ghost" href="#quick-start">Quick start</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <figure class="shot">
+    <img src="img/debugger-target.jpg" alt="The GAS Debugger showing live attributes on a damaged actor, Health at 80 of 100">
+    <figcaption>The GAS Debugger, mid-game. Health is 80/100 because an ability just took 20 off it — the value on screen is live, not a default.</figcaption>
+  </figure>
+
+  <h2 id="quick-start">Quick start</h2>
+
+  <p>Three components on any Blueprint actor. That is the whole setup.</p>
+
+  <h3>1. Give the actor an ability system</h3>
+  <p>Add an <strong>Ability System Component</strong> (Unreal's own), then a
+  <strong>Hitz Attribute Set Initializer</strong>. The initializer is what makes the ASC actually
+  work — it calls <code>InitAbilityActorInfo</code>, which stock GAS never exposes to Blueprint, and
+  spawns the AttributeSet. Without it the ASC sits inert: effects go nowhere and tags never appear.</p>
+
+  <div class="callout">
+    <p><strong>Grant your abilities here.</strong> The initializer's <code>Default Abilities</code>
+    array is what gives abilities to the ASC. An ability that is not granted cannot be activated —
+    input will appear to do nothing.</p>
+  </div>
+
+  <h3>2. Bind input to an ability</h3>
+  <p>Add a <strong>Hitz Ability Input</strong> component. Set its <code>Mapping Context</code> to an
+  Enhanced Input mapping context, then add one <code>Ability Bindings</code> entry per ability:
+  an <code>InputAction</code> and the ability class it activates.</p>
+
+  <h3>3. React to attribute changes</h3>
+  <p>Add a <strong>Hitz Attribute Listener</strong>, add <code>Health</code> to its
+  <code>Attributes To Watch</code>, and bind its <code>On Attribute Changed</code> event. You get the
+  attribute, the new value and the old value — with no AbilitySystemComponent references anywhere in
+  your graph.</p>
+
+  <figure class="shot">
+    <img src="img/blueprint-listener.jpg" alt="Blueprint graph with the On Attribute Changed event wired to a Print String">
+    <figcaption>Pick the attribute from a dropdown, get an event. That is the entire binding.</figcaption>
+  </figure>
+
+  <h2>What's included</h2>
+
+  <h3>Components</h3>
+  <table>
+    <tr><th>Component</th><th>What it does</th></tr>
+    <tr><td><code>HitzAttributeSetInitializer</code></td><td>Calls <code>InitAbilityActorInfo</code>, spawns the AttributeSet, grants <code>DefaultAbilities</code>, applies initial values from an optional DataTable.</td></tr>
+    <tr><td><code>HitzAttributeListener</code></td><td>Fires a Blueprint event whenever a watched attribute changes.</td></tr>
+    <tr><td><code>HitzAbilityInput</code></td><td>Registers an Enhanced Input mapping context and activates abilities from InputActions.</td></tr>
+  </table>
+
+  <h3>Attributes</h3>
+  <p><code>UHitzAttributeSet</code> ships with Health, MaxHealth, Mana, MaxMana, MoveSpeed,
+  AttackDamage and Shield, plus meta attributes for incoming damage and healing. Damage routes
+  through Shield before Health and clamps at zero.</p>
+
+  <h3>Abilities</h3>
+  <table>
+    <tr><th>Ability</th><th>Pattern</th></tr>
+    <tr><td><code>HitzGA_InstantDamage</code></td><td>Line trace from the avatar's view point, applies a damage effect to the first ASC it hits.</td></tr>
+    <tr><td><code>HitzGA_AoEGroundStamp</code></td><td>Sphere overlap around the avatar, applies to every ASC-owning actor found.</td></tr>
+    <tr><td><code>HitzGA_Channel</code></td><td>Applies a tick effect for a duration, then a completion effect. Interruptible by gameplay event.</td></tr>
+    <tr><td><code>HitzGA_Dash</code></td><td>Root-motion dash. The only ability that ships with a real cooldown.</td></tr>
+    <tr><td><code>HitzGA_Projectile</code></td><td>Spawns your projectile actor and hands it the effect to apply on hit.</td></tr>
+    <tr><td><code>HitzGA_Toggle</code></td><td>On/off state driven by a gameplay tag.</td></tr>
+  </table>
+
+  <h3>Effects</h3>
+  <p>Damage, burn, heal-over-time, shield, stun, silence, slow, a dash cooldown and a toggle-state
+  effect. All SetByCaller-driven, so you supply the magnitudes.</p>
+
+  <h3>Editor tools</h3>
+  <table>
+    <tr><th>Tool</th><th>Where</th></tr>
+    <tr><td>GAS Debugger</td><td><code>HitzGAS → GAS Debugger</code>. Live attributes, granted abilities with activation counts, active effects, owned tags. Exports to JSON.</td></tr>
+    <tr><td>AttributeSet Generator</td><td><code>HitzGAS → Generate AttributeSet…</code>. Writes a compilable C++ AttributeSet with replication, OnRep handlers and clamping.</td></tr>
+  </table>
+
+  <figure class="shot">
+    <img src="img/generator.jpg" alt="The AttributeSet Generator with Stamina, Armor and CritChance defined">
+    <figcaption>Name the attributes, set ranges, tick replicated. The tool writes the C++.</figcaption>
+  </figure>
+
+  <h2>Blueprint function library</h2>
+  <p>All under <code>HitzGAS | EventBus</code>:</p>
+  <table>
+    <tr><th>Function</th><th>Notes</th></tr>
+    <tr><td><code>Get ASC</code></td><td>Returns an actor's AbilitySystemComponent, component- or interface-based.</td></tr>
+    <tr><td><code>Actor Has Tag</code></td><td>Whether the ASC currently owns a gameplay tag.</td></tr>
+    <tr><td><code>Send GAS Event</code></td><td>Sends a gameplay event. Returns false and logs if the actor has no ASC or the tag is empty.</td></tr>
+    <tr><td><code>Apply Effect To Actor</code></td><td>Applies an effect with SetByCaller magnitudes. <strong>Server-authoritative</strong> — returns false and logs if called without authority.</td></tr>
+    <tr><td><code>Init Ability System</code></td><td>Exposes <code>InitAbilityActorInfo</code> to Blueprint. Usually unnecessary; the initializer component handles it.</td></tr>
+    <tr><td><code>Add Attribute Set</code></td><td>Creates and registers an AttributeSet on an ASC at runtime.</td></tr>
+  </table>
+
+  <h2 id="troubleshooting">Troubleshooting</h2>
+  <p>The failure modes people actually hit, and what each one means.</p>
+
+  <details class="tshoot">
+    <summary>I press the key and nothing happens — no log, no error</summary>
+    <div>
+      <p>Almost always one of three things, in order of likelihood:</p>
+      <p><strong>The ability was never granted.</strong> Input activation uses
+      <code>TryActivateAbilityByClass</code>, which only searches abilities already granted to the ASC.
+      Add the ability to the initializer's <code>Default Abilities</code> array.</p>
+      <p><strong>The mapping context has no key bound.</strong> Open the Input Mapping Context asset
+      and confirm there is an actual key under your InputAction — an empty mappings list looks
+      correctly configured everywhere else in the chain.</p>
+      <p><strong>The pawn is not possessed.</strong> Set <code>Auto Possess Player</code> to
+      <code>Player 0</code>, or possess it from your game mode.</p>
+    </div>
+  </details>
+
+  <details class="tshoot">
+    <summary>The ability activates but nothing takes damage</summary>
+    <div>
+      <p><code>HitzGA_InstantDamage</code> traces from the avatar's <em>view point</em> — actor
+      location plus <code>BaseEyeHeight</code>, which defaults to 64 units. It does not trace from the
+      actor origin.</p>
+      <p>A target whose collision does not reach that height is missed entirely: a default Capsule
+      Collision is only 44 half-height, so a target at the same Z as the shooter tops out 20 units
+      below the trace line. Raise the target, or enlarge its capsule.</p>
+      <p>Check the Output Log — the trace logs a warning naming the origin and direction when it
+      finds nothing.</p>
+    </div>
+  </details>
+
+  <details class="tshoot">
+    <summary>My health bar reads 0 on a full-health actor</summary>
+    <div>
+      <p>Fixed in 1.0.0. If you see it on an older build: the listener bound before the AttributeSet
+      existed, read 0, and never got a correcting notification because values assigned in an
+      AttributeSet's constructor bypass the ability system's change delegates.</p>
+      <p>The initializer now writes every attribute back through the ASC, so listeners get the real
+      value regardless of component order.</p>
+    </div>
+  </details>
+
+  <details class="tshoot">
+    <summary>Effects do nothing when applied from Blueprint on a client</summary>
+    <div>
+      <p>Applying gameplay effects is server-authoritative. <code>Apply Effect To Actor</code> refuses
+      on a non-authority caller and logs why, because attributes changed on a client are overwritten
+      by the next replication from the server.</p>
+      <p>Call it from server-side logic, or from inside a GameplayAbility, which handles prediction
+      properly. In single-player and on a listen server the calling machine is the authority, so it
+      just works.</p>
+    </div>
+  </details>
+
+  <details class="tshoot">
+    <summary>Dash does nothing on my pawn</summary>
+    <div>
+      <p>Dash uses root motion, which requires a <code>UCharacterMovementComponent</code>. The avatar
+      must be an <code>ACharacter</code>, not a plain <code>APawn</code>. It logs a warning naming the
+      avatar when the cast fails.</p>
+    </div>
+  </details>
+
+  <details class="tshoot">
+    <summary>How do I add a cooldown to an ability other than Dash?</summary>
+    <div>
+      <p>Set <code>CooldownGameplayEffectClass</code> on the ability — that is standard GAS, and
+      <code>CommitAbility</code> applies it while <code>CanActivateAbility</code> checks it. Dash ships
+      with one configured as a worked example; the other five deliberately do not, so you are not
+      fighting a cooldown you did not ask for.</p>
+    </div>
+  </details>
+
+  <h2>Scope, honestly</h2>
+  <p>The abilities and effects are <strong>working starting points, not a polished library</strong>.
+  They exist to be read, copied and pointed at your own effects. No demo map and no UMG widget ship
+  with the plugin — <code>Content/</code> is deliberately empty to keep the download small.</p>
+  <p>This is a smaller surface area than the large GAS frameworks. That is the intent: it is the fast
+  on-ramp, not the everything-platform.</p>
+
+  <h2>Support</h2>
+  <p>Every fallback and failure path in the plugin writes to the <code>LogHitzGAS</code> category.
+  Before filing an issue, check the Output Log — a misconfigured ability usually explains itself.</p>
+  <p>Issues and questions: <a href="#">[FILL — your GitHub Issues URL]</a></p>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    HitzGAS Toolkit — built for Unreal Engine 5. Documentation for version 1.0.0.
+  </div>
+</footer>
+
+</body>
+</html>
